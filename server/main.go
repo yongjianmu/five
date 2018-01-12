@@ -141,33 +141,35 @@ func sendMsg(ws *websocket.Conn, src string) {
 }
 
 func eventHandler(ws *websocket.Conn) {
-	msg := make([]byte, 512)
-	n, err := ws.Read(msg)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("Receive: %s\n", msg[:n])
+    for {
+    	msg := make([]byte, 512)
+    	n, err := ws.Read(msg)
+    	if err != nil {
+    		log.Fatal(err)
+    	}
+    	fmt.Printf("Receive: %s\n", msg[:n])
 
-    curPos := getPos(msg, n)
-    fmt.Println("Got pos: ", curPos.x, ", ", curPos.y)
-    if !isAvailable(curPos) {
-        sendMsg(ws, MSG_INVALID)
-        return
+        curPos := getPos(msg, n)
+        fmt.Println("Got pos: ", curPos.x, ", ", curPos.y)
+        if !isAvailable(curPos) {
+            sendMsg(ws, MSG_INVALID)
+            continue
+        }
+
+        setCurrentChess(curPos)
+        if canWin(curPos) {
+            sendMsg(ws, MSG_WIN)
+            return
+        }
+
+        if isDraw() {
+            sendMsg(ws, MSG_DRAW)
+            return
+        }
+
+    	sendMsg(ws, MSG_OK)
+        setNextColor()
     }
-
-    setCurrentChess(curPos)
-    if canWin(curPos) {
-        sendMsg(ws, MSG_WIN)
-        return
-    }
-
-    if isDraw() {
-        sendMsg(ws, MSG_DRAW)
-        return
-    }
-
-	sendMsg(ws, MSG_OK)
-    setNextColor()
 }
 
 func main() {

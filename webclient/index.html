@@ -1,5 +1,10 @@
+<!DOCTYPE html>
+<html>
+<body>
+
 <h1>WebSocket API Example</h1>
-<script src="js/script.js"></script>
+<script type="text/javascript" src="js/websocket.min.js"></script>
+<script type="text/javascript" src="js/script.js"></script>
 <link rel="stylesheet" type="text/css" href="css/style.css">
 <div id="controls">
   <label>Enter your message to send to the WebSocket server:</label>
@@ -7,10 +12,11 @@
   <button type="button" id="sendbutton" onclick="sendMessage();">Send my message to the server</button>
 </div>
 <div id="info">
-  <p>
-    <strong>Status: </strong><span id="connectionstatus">Disconnected</span>
-  </p>
+  <p id="connectionstatus"> Disconnected </p>
 </div>
 <br />
 <br />
 <button type="button" id="connect" onclick="closeConnection();">Disconnect from the WebSocket Server</button>
+
+</body>
+</html>

@@ -1,3 +1,5 @@
+var socket
+
 //First test for the browsers support for WebSockets
 if (!window.WebSocket) {
   //If the user's browser does not support WebSockets, give an alert message
@@ -5,6 +7,7 @@ if (!window.WebSocket) {
 } else {
   //Set the websocket server URL
   var websocketurl = "ws://localhost:8080/echo";
+  //var websocketurl = "ws://echo.websocket.org/";
 
   //get status element
   var connstatus = document.getElementById("connectionstatus");
@@ -17,19 +20,22 @@ if (!window.WebSocket) {
 
   //This function is called when the websocket connection is opened
   socket.onopen = function() {
-    connstatus.innerHTML = "Connected!";
-    infodiv.innerHTML += "<p>Connected to websocket server at: " + websocketurl + "</p>";
+    //connstatus.innerHTML = "Connected!";
+    //infodiv.innerHTML += "<p>Connected to websocket server at: " + websocketurl + "</p>";
+    console.log("Connection Opened")
   };
 
   //This function is called when the websocket connection is closed
   socket.onclose = function() {
-    connstatus.innerHTML = "Disconnected";
-    infodiv.innerHTML += "<p>Disconnected from the websocket server at: " + websocketurl + "</p>";
+    //connstatus.innerHTML = "Disconnected";
+    //infodiv.innerHTML += "<p>Disconnected from the websocket server at: " + websocketurl + "</p>";
+    console.log("Connection Closed")
   };
 
   //This function is called when the websocket receives a message. It is passed the message object as its only parameter
   socket.onmessage = function(message) {
-    infodiv.innerHTML += "<p>Message received from server: '" + message.data + "'</p>";
+    //infodiv.innerHTML += "<p>Message received from server: '" + message.data + "'</p>";
+    console.log("msg sent");
   };
 }
 
@@ -43,8 +49,9 @@ function sendMessage() {
     var message = document.getElementById("message").value;
 
     if (message !== "") {
+      console.log("request send: " + message)
       socket.send(message);
-      infodiv.innerHTML += "<p>Sent message to server: '" + message + "'</p>";
+      //infodiv.innerHTML += "<p>Sent message to server: '" + message + "'</p>";
     } else {
       alert("You must enter a message to be sent!");
     }
@@ -53,6 +60,7 @@ function sendMessage() {
 
 function closeConnection() {
   //check to ensure that the socket variable is present i.e. the browser support tests passed
+  console.log("Got close request")
   if (socket) {
     socket.close();
   }
