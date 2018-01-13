@@ -62,8 +62,9 @@ func setNextColor() {
 
     if CUR_COLOR == BLACK {
         CUR_COLOR = WHITE
+    } else {
+        CUR_COLOR = BLACK
     }
-    CUR_COLOR = BLACK
 }
 
 func setCurrentChess(p Pos) {
@@ -79,6 +80,7 @@ func getPos(msg []byte, n int) Pos {
 }
 
 func twoWaySearch(p Pos, dx int, dy int) int {
+    fmt.Println("Start two way search!")
     score := 1
     cur_x := p.x
     cur_y := p.y
@@ -93,6 +95,7 @@ func twoWaySearch(p Pos, dx int, dy int) int {
             break
         }
         score += 1
+        fmt.Println(cur_x, cur_y)
     }
 
     cur_x = p.x
@@ -108,6 +111,7 @@ func twoWaySearch(p Pos, dx int, dy int) int {
             break
         }
         score += 1
+        fmt.Println(cur_x, cur_y)
     }
     return score
 }

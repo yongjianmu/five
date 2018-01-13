@@ -1,4 +1,4 @@
-var socket
+var socket;
 
 //First test for the browsers support for WebSockets
 if (!window.WebSocket) {
@@ -41,6 +41,8 @@ if (!window.WebSocket) {
 
     var chess = document.getElementById("mycanvas");
     var context = chess.getContext('2d');
+    var x_pos;
+    var y_pos;
     var me = true;
     var chessBox = [];
     for(var i=0;i<15;i++){
@@ -61,6 +63,18 @@ if (!window.WebSocket) {
         }
     }
     drawChessBoard();
+    socket.addEventListener("message", function(event) {
+        var data = event.data;
+        // 处理数据
+        console.log("#### Receive data: ", data)
+        if(data == "ok"){
+            oneStep(x_pos, y_pos, me)
+        }
+        if(data == "win"){
+            oneStep(x_pos, y_pos, me)
+            closeConnection()
+        }
+    });
 
     function sendPos(pos) {
       //check to ensure that the socket variable is present i.e. the browser support tests passed
@@ -89,6 +103,13 @@ if (!window.WebSocket) {
         context.fillStyle=g;
         context.fill();
         context.closePath();
+
+        if(me){
+            chessBox[i][j]=1;
+        }else{
+            chessBox[i][j]=2;
+        }
+        me = !me
     }
     chess.onclick=function(e){
         var x = e.offsetX;//相对于棋盘左上角的x坐标
@@ -99,14 +120,9 @@ if (!window.WebSocket) {
             var nex = 'a'.charCodeAt(0);
             pos = String.fromCharCode(nex + j) + i.toString();
             console.log("*** Current Pos: " + pos)
+            x_pos = i;
+            y_pos = j;
             sendPos(pos)
-            oneStep(i,j,me);
-            if(me){
-                chessBox[i][j]=1;
-            }else{
-                chessBox[i][j]=2;
-            }
-            me=!me;//下一步白棋
         }
     }
 }
