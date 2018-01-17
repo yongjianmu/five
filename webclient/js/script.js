@@ -67,7 +67,10 @@ if (!window.WebSocket) {
         var data = event.data;
         // 处理数据
         console.log("#### Receive data: ", data)
-        if(data == "ok"){
+        if(data.match("ok")){
+            curPosStr = data.slice(3) // skip "ok,"
+            y_pos = curPosStr[0].charCodeAt(0) - 'a'.charCodeAt(0)
+            x_pos = parseInt(curPosStr.slice(1))
             oneStep(x_pos, y_pos, me)
         }
         if(data == "win"){

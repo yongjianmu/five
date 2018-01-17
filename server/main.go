@@ -5,6 +5,9 @@ import (
 	"log"
 	"net/http"
     "strconv"
+    "flag"
+    "time"
+    "math/rand"
 
 	"golang.org/x/net/websocket"
 )
@@ -36,6 +39,7 @@ var BOARD = [SIDE_LEN][SIDE_LEN]Color{}
 var CUR_COLOR Color
 var CUR_CHESS = 0
 var FORBIDDEN_CHESS = 0
+var AI_FLAG bool
 
 func Max(x, y int) int {
     if x > y {
@@ -72,15 +76,15 @@ func setCurrentChess(p Pos) {
     CUR_CHESS += 1
 }
 
-func getPos(msg []byte, n int) Pos {
+func getPos(msg []byte, n int) (Pos, string) {
     var p Pos
     p.x = int(msg[0] - 'a')
     p.y, _ = strconv.Atoi(string(msg[1:n]))
-    return p
+    return p, string(msg[0]) + string(msg[1:n])
 }
 
 func twoWaySearch(p Pos, dx int, dy int) int {
-    fmt.Println("Start two way search!")
+    //fmt.Println("Start two way search!")
     score := 1
     cur_x := p.x
     cur_y := p.y
@@ -144,6 +148,35 @@ func sendMsg(ws *websocket.Conn, src string) {
     fmt.Printf("Send: %s\n", errMsg[:e])
 }
 
+func getRandomPos(positions []Pos) Pos {
+    size := len(positions)
+    r := rand.New(rand.NewSource(time.Now().UnixNano()))
+    retPos := positions[r.Intn(size)]
+    return retPos
+}
+
+func stupidMethod() []Pos {
+    var positions []Pos
+    for i := 0; i < SIDE_LEN; i++ {
+        for j := 0; j < SIDE_LEN; j++ {
+            if BOARD[i][j] == EMPTY {
+                positions = append(positions, Pos{x:i,y:j})
+            }
+        }
+    }
+    return positions
+}
+
+func aiCalcNextStep() (Pos, string) {
+    fmt.Println("AI is thinking...")
+    var candidates []Pos
+    candidates = stupidMethod()
+    retPos := getRandomPos(candidates)
+    retStr := string(byte('a' + retPos.x)) + strconv.Itoa(retPos.y)
+    fmt.Println("AI Got: ", retStr)
+    return retPos, retStr
+}
+
 func eventHandler(ws *websocket.Conn) {
     for {
     	msg := make([]byte, 512)
@@ -153,7 +186,7 @@ func eventHandler(ws *websocket.Conn) {
     	}
     	fmt.Printf("Receive: %s\n", msg[:n])
 
-        curPos := getPos(msg, n)
+        curPos, curPosStr := getPos(msg, n)
         fmt.Println("Got pos: ", curPos.x, ", ", curPos.y)
         if !isAvailable(curPos) {
             sendMsg(ws, MSG_INVALID)
@@ -171,12 +204,37 @@ func eventHandler(ws *websocket.Conn) {
             return
         }
 
-    	sendMsg(ws, MSG_OK)
+    	sendMsg(ws, MSG_OK + "," + curPosStr)
         setNextColor()
+
+        if(AI_FLAG) {
+            curPos, curPosStr = aiCalcNextStep()
+            setCurrentChess(curPos)
+            if canWin(curPos) {
+                sendMsg(ws, MSG_WIN)
+                return
+            }
+
+            if isDraw() {
+                sendMsg(ws, MSG_DRAW)
+                return
+            }
+
+            sendMsg(ws, MSG_OK + "," + curPosStr)
+            setNextColor()
+        }
     }
 }
 
 func main() {
+    flag.BoolVar(&AI_FLAG, "enableai", false, "enable or disable AI") // --enableai=false
+    flag.Parse()
+    if(AI_FLAG) {
+        fmt.Println("AI Enabled!")
+    } else {
+        fmt.Println("AI Disabled!")
+    }
+
     fmt.Println("Starting Server......")
     initBoard()
 	http.Handle("/echo", websocket.Handler(eventHandler))
